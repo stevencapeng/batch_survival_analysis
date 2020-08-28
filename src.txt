@@ -1,0 +1,49 @@
+#part 1
+#run the perl script in terminal
+perl pre_coxph.pl data-TCGA-UCEC-rnaexpr.tsv patient-info.txt #to get the patient.txt and the expr.txt
+
+#part 2
+#run these command with R
+#
+library("survival")
+mypvalue <- list()
+myhazard_ratio <- list()
+mybeta <- list()
+x=1
+patient <- read.table ("patient.txt",header = T,sep = "\t")
+expr <- read.table ("expr.txt",header =F,row.names=1,sep = "\t")
+expr <- t(expr)
+a <- colMeans(expr,na.rm=FALSE)
+a <- as.matrix(a)
+names(expr) <- c(1:12727)
+perfect_dataframe <- cbind(patient,expr)
+y <- Surv(perfect_dataframe$OS_MONTHS,perfect_dataframe$OS_STATUS==0)
+for (i in 27:12753) {
+ b <- i-26
+ expression <- data.frame(perfect_dataframe[i])
+ names(expression) <- c("ex")
+ perfect_combine <- cbind(patient,expression) 
+ coxmodel <- coxph(y ~ ex + AGE + TUMOR_STAGE_2009 ,data=perfect_combine)
+ prep <- summary(coxmodel)
+ pvalue <- prep$coefficients[1,5]
+ hazard_ratio <- prep$coefficients[1,2]
+ beta <- prep$coefficients[1,1]
+ mypvalue[[x]] <- pvalue
+ myhazard_ratio[[x]] <- hazard_ratio
+ mybeta[[x]] <- beta 
+ if (a[b,1]==0) {
+  mypvalue[[x]] <- 1
+ }
+ x <- x+1
+ if (x%%500==0){
+  print(x)
+ }
+}
+j <- p.adjust(mypvalue,method="fdr")
+output <- cbind(mypvalue,j,myhazard_ratio,mybeta)
+write.table(output,file = "survival_analyse_output.txt",sep = "\t",row.names = FALSE,col.names = FALSE)
+
+
+#part 3
+#run in terminal
+perl combine_geneinfo_pval.pl expr.txt survival_analyse_output.txt gene-info.txt #to get the final data:final_genenames_pval.txt
