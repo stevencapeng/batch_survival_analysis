@@ -10,3 +10,5 @@ The required datasets were listed below all of which were download from TCGA(htt
 We preprocessed raw data with Perl scripts. Survival analysis was conducted with the R package survival(https://cran.r-project.org/web/packages/survival/index.html). 
 
 The executive code is present in src.txt.
+
+AL109924.2 was found to be the most promissing lncRNA related to prognosis of UCEC. The KM-curves were shown in figure1-5.tif.
